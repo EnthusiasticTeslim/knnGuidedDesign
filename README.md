@@ -16,6 +16,12 @@
 | :-- | :-- | :-- |
 | Teslim Olayiwola | Louisiana State University | tolayi1@lsu.edu |
 
+### Environment setup
+Python virtual environments are used for this project. Execute the commands below in terminal to install all requirements.
+```bash
+~$conda env create -f environment.yml # Create the environment 
+~$conda activate knnMoleSearch # activate environment
+
 ### To-Do
 - [x] Complete data collection
 - [] Train/Pretrain a Generative model
