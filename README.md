@@ -21,6 +21,7 @@ Python virtual environments are used for this project. Execute the commands belo
 ```bash
 ~$conda env create -f environment.yml # Create the environment 
 ~$conda activate knnMoleSearch # activate environment
+```
 
 ### To-Do
 - [x] Complete data collection
