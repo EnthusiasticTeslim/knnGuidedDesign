@@ -1,4 +1,4 @@
-# Neigbor Guided Molecular Optimization
+# Synthesizability-Driven Molecular Design Optimization: Integrating k-Nearest Neighbor and Genetic Algorithms
 <table>
     <tr valign=top>
         <td width="60%">
