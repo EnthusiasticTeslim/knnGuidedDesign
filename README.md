@@ -25,5 +25,6 @@ Python virtual environments are used for this project. Execute the commands belo
 
 ### To-Do
 - [x] Complete data collection
+- [x] Set up an hypersearch for the VAE and GNN model. 
 - [] Train/Pretrain a Generative model
 - [] Implement the proposed methodology
