@@ -7,8 +7,8 @@ from pytorch_lightning import LightningDataModule
 from multiprocessing import cpu_count
 from dgl.dataloading import GraphDataLoader
 try:
-    from src.utils import get_selfies_and_smiles_encodings, multiple_selfies_to_hot  # selfies and smiles functions
-    from src.utils import graph_dataset
+    from utils import get_selfies_and_smiles_encodings, multiple_selfies_to_hot  # selfies and smiles functions
+    from utils import graph_dataset
 except:
     from .utils import get_selfies_and_smiles_encodings, multiple_selfies_to_hot  # selfies and smiles functions
     from .utils import graph_dataset
@@ -88,7 +88,7 @@ class GraphDataModule(LightningDataModule):
 
 
 #*********************** Load the hyperparameters from logs ***********************
-def load_hp_params(path):
+def load_auto_hp_params(path):
     log_dirs = sorted(glob.glob(path))
 
     hp_params = {"run":[],
@@ -121,6 +121,43 @@ def load_hp_params(path):
 
             hp_params["trn_loss"].append(np.nanmin(train_loss))
             hp_params["val_loss"].append(np.nanmin(val_loss))
+    
+    df = pd.DataFrame(hp_params)
+    return df
+
+
+def load_gnn_hp_params(path):
+    log_dirs = sorted(glob.glob(path))
+    hp_params = {"run":[],
+                    'gc_hidden_dim': [], 'fcn_hidden_dim': [],
+                    'n_gcn_layers': [], 'n_fcn_layers': [], "lr": [],
+                    "trn_loss":[], "val_loss":[],
+                    "trn_acc":[], "val_acc":[]}
+
+    for i,v in enumerate(log_dirs):
+        reader = SummaryReader(log_dirs[i])
+        df = reader.scalars
+        print(f"run_{i} has {len(df)} epochs")
+
+        if len(df) > 2:
+            hp_params["run"].append(f"run_{i}")
+            with open(f"{log_dirs[i]}/hparams.yaml", "r") as file:
+                hparams = yaml.safe_load(file)
+                print(hparams)
+
+            for k,v in hparams.items():
+                if k not in ["n_features", "n_classes"]:
+                    hp_params[k].append(v)
+
+            train_loss = df[df.tag=="train_loss"].value.to_numpy()
+            val_loss = df[df.tag=="val_loss"].value.to_numpy()
+            train_acc = df[df.tag=="train_acc"].value.to_numpy()
+            val_acc = df[df.tag=="val_acc"].value.to_numpy()
+
+            hp_params["trn_loss"].append(np.nanmin(train_loss))
+            hp_params["val_loss"].append(np.nanmin(val_loss))
+            hp_params["trn_acc"].append(np.nanmax(train_acc))
+            hp_params["val_acc"].append(np.nanmax(val_acc))
     
     df = pd.DataFrame(hp_params)
     return df
