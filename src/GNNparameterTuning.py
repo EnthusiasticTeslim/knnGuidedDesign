@@ -12,7 +12,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from data.loader import GraphDataModule
-from arch.model import lightiningGNN
+from arch.lightning import trainerGNN
 
 
 def objective(trial, split: int, data_path: str = '../data/data.csv', model_id: str = 'GNN'):
@@ -30,7 +30,7 @@ def objective(trial, split: int, data_path: str = '../data/data.csv', model_id: 
     # Load the data
     data_module = GraphDataModule(csv_path=data_path, test_size=split, batch_size=batch_size)
     # Initialize the model
-    model = lightiningGNN(in_dim=74, gcn_hidden_dim=hidden_gcn_dim, fcn_hidden_dim=hidden_fcn_dim, out_dim=1,
+    model = trainerGNN(in_dim=74, gcn_hidden_dim=hidden_gcn_dim, fcn_hidden_dim=hidden_fcn_dim, out_dim=1,
                           n_gcn_layers=n_gcn_layers, n_fcn_layers=n_fcn_layers, learning_rate=learning_rate)
     # Define the model callbacks
     checkpoint_call_back = ModelCheckpoint(

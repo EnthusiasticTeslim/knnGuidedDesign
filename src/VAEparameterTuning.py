@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from data.loader import load_data
 from data.utils import flatten
-from arch.model import lightiningVAE
+from arch.lightning import trainerVAE
 
 
 def objective(trial, seed: int, split: float, data_path: str = '../data/data.csv', model_id: str = 'VAE'):
@@ -36,7 +36,7 @@ def objective(trial, seed: int, split: float, data_path: str = '../data/data.csv
     val_loader = DataLoader(TensorDataset(flattened_dataset_val), batch_size=batch_size, shuffle=True)
     # Initialize the model
     latent_dim = 32  # Dimensionality of the latent space
-    model = lightiningVAE(input_dim_train, latent_dim,
+    model = trainerVAE(input_dim_train, latent_dim,
                           enc_hidden_dim_1=enc_hidden_dim_1,
                           dec_hidden_dim_1=dec_hidden_dim_1,
                           enc_hidden_dim_2=enc_hidden_dim_2,
