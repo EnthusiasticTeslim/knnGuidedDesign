@@ -10,7 +10,7 @@ import pytorch_lightning as pl
 import dgl
 from dgl.nn.pytorch import GraphConv
 # newly built
-from model import VAE, GNN
+from .model import VAE, GNN
 
 
 # ************************* Variational Autoencoder *************************

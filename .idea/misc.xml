@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="knnMoleSearch" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="knnMoleSearch" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="MatML" project-jdk-type="Python SDK" />
 </project>
