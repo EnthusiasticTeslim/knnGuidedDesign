@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchmetrics.regression import R2Score
 from sklearn.metrics import r2_score
 # Ligthining
 import pytorch_lightning as pl
@@ -11,9 +10,7 @@ import pytorch_lightning as pl
 import dgl
 from dgl.nn.pytorch import GraphConv
 
-
 #************************* Variational Autoencoder *************************
-
 def vae(
         input_dim, latent_dim,
         enc_hidden_dim_1=100, dec_hidden_dim_1=40,
@@ -21,14 +18,6 @@ def vae(
         dropout=0.2):
     """
     Variational Autoencoder (VAE) class.
-
-    Args:
-        input_dim (int): Dimensionality of the input data.
-        latent_dim (int): Dimensionality of the latent space.
-
-    Attributes:
-        encoder (nn.Sequential): The encoder neural network.
-        decoder (nn.Sequential): The decoder neural network.
     ref: base architecture from
             https://github.com/Imfinethankyou1/TADF-likeness/blob/master/model.py
     """
@@ -207,14 +196,6 @@ class GNN(nn.Module):
 class lightiningGNN(pl.LightningModule):
     """
     Graph Neural Network class.
-
-    Args:
-        input_dim (int): Dimensionality of the input data.
-        latent_dim (int): Dimensionality of the latent space.
-
-    Attributes:
-        encoder (nn.Sequential): The encoder neural network.
-        decoder (nn.Sequential): The decoder neural network.
     """
     def __init__(self, in_dim=74, gcn_hidden_dim=256, fcn_hidden_dim=256, out_dim=1,
                  n_gcn_layers=2, n_fcn_layers=2, learning_rate=1e-3):

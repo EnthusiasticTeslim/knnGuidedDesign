@@ -9,7 +9,7 @@ import numpy as np
 import torch
 import dgl
 from dgllife.utils import CanonicalAtomFeaturizer 
-from dgllife.utils import mol_to_bigraph,smiles_to_complete_graph
+from dgllife.utils import mol_to_bigraph, smiles_to_complete_graph
 from rdkit import Chem
 
 def get_selfies_and_smiles_encodings(df):
@@ -29,21 +29,21 @@ def get_selfies_and_smiles_encodings(df):
     """
 
     # get the smiles
-    smiles_list = np.asanyarray(df.smiles) # get the smiles list
-    smiles_alphabet = list(set(''.join(smiles_list))) # get the smiles alphabet
+    smiles_list = np.asanyarray(df.smiles)  # get the smiles list
+    smiles_alphabet = list(set(''.join(smiles_list)))  # get the smiles alphabet
     smiles_alphabet.append(' ')  # for padding
-    largest_smiles_len = len(max(smiles_list, key=len)) # get the largest smiles length
+    largest_smiles_len = len(max(smiles_list, key=len))  # get the largest smiles length
 
     print('--> Translating SMILES to SELFIES...0%')
     # translate smiles to selfies
-    selfies_list = list(map(sf.encoder, smiles_list)) # translate smiles to selfies
+    selfies_list = list(map(sf.encoder, smiles_list))  # translate smiles to selfies
 
-    all_selfies_symbols = sf.get_alphabet_from_selfies(selfies_list) # get the selfies alphabet
-    all_selfies_symbols.add('[nop]') # add padding symbol
-    all_selfies_symbols.add('.') # add padding symbol
-    selfies_alphabet = list(all_selfies_symbols) # convert to list
+    all_selfies_symbols = sf.get_alphabet_from_selfies(selfies_list)  # get the selfies alphabet
+    all_selfies_symbols.add('[nop]')  # add padding symbol
+    all_selfies_symbols.add('.')  # add padding symbol
+    selfies_alphabet = list(all_selfies_symbols)  # convert to list
 
-    max_len = max(sf.len_selfies(s) for s in selfies_list) # get the largest selfies length
+    max_len = max(sf.len_selfies(s) for s in selfies_list)  # get the largest selfies length
 
     # get arrays from the selfies and smiles
     vocab_stoi = {symbol: idx for idx, symbol in enumerate(selfies_alphabet)}
@@ -78,9 +78,9 @@ def selfies_to_hot(selfie, largest_selfie_len, alphabet):
     return integer_encoded, np.array(onehot_encoded)
 
 def selfies_to_hot(selfie, largest_selfie_len, alphabet):
-    """Go from a single selfies string to a one-hot encoding.
     """
-
+    Go from a single selfies string to a one-hot encoding.
+    """
     symbol_to_int = dict((c, i) for i, c in enumerate(alphabet))
 
     # pad with [nop]

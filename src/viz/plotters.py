@@ -11,6 +11,7 @@ from matplotlib.ticker import (AutoLocator, AutoMinorLocator)
 from matplotlib.path import Path
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+
 class Plotters():
     '''
     Utilities class to handle all plots.

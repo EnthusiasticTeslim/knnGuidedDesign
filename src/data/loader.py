@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue April 2 15:26:24 2024
+
+@author: Teslim Olayiwola
+"""
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -35,7 +42,6 @@ def load_data(seed, test_size=0.2,
     return x_train, x_val
 
 
-#*********************** Load the data into Graph ***********************
 #*********************** Load the data into Graph ***********************
 def load_graph_data(seed, test_size=0.2, csv_path='../data/data.csv'):
     # Load the data
