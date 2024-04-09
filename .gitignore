@@ -1,4 +1,5 @@
 # Folders
+*events.out.tfevents*
 *checkpoints*
 *lightning_logs*
 *dataset*
