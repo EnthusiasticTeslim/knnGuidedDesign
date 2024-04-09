@@ -55,27 +55,29 @@ def get_selfies_and_smiles_encodings(df):
            smiles_list, smiles_alphabet, largest_smiles_len, vocab_stoi, vocab_itos
 
 
-def selfies_to_hot(selfie, largest_selfie_len, alphabet):
-    """Go from a single selfies string to a one-hot encoding.
+def get_smiles_selfies(df):
+    """
+    Returns encoding, alphabet and length of largest molecule in SMILES and
+    SELFIES, given a file containing SMILES molecules.
+
+    input:
+        dataframe with 'smiles' as column's name.
+    output:
+        - selfies encoding
+        - selfies alphabet
+        - longest selfies string
+        - smiles encoding (equivalent to file content)
+        - smiles alphabet (character based)
+        - longest smiles string
     """
 
-    symbol_to_int = dict((c, i) for i, c in enumerate(alphabet))
-
-    # pad with [nop]
-    selfie += '[nop]' * (largest_selfie_len - sf.len_selfies(selfie))
-
-    # integer encode
-    symbol_list = sf.split_selfies(selfie)
-    integer_encoded = [symbol_to_int[symbol] for symbol in symbol_list]
-
-    # one hot-encode the integer encoded selfie
-    onehot_encoded = list()
-    for index in integer_encoded:
-        letter = [0] * len(alphabet)
-        letter[index] = 1
-        onehot_encoded.append(letter)
-
-    return integer_encoded, np.array(onehot_encoded)
+    # get the smiles
+    smiles_list = np.asanyarray(df.smiles)  # get the smiles list
+    print('--> Translating SMILES to SELFIES...0%')
+    # translate smiles to selfies
+    selfies_list = list(map(sf.encoder, smiles_list))  # translate smiles to selfies
+    print('--> Finished translating SMILES to SELFIES...100%')
+    return selfies_list, smiles_list
 
 def selfies_to_hot(selfie, largest_selfie_len, alphabet):
     """

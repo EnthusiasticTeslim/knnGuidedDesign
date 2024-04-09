@@ -29,7 +29,7 @@ class trainerVAE(pl.LightningModule):
 
     def __init__(self, input_dim, latent_dim, enc_hidden_dim_1=100, dec_hidden_dim_1=40,
                  enc_hidden_dim_2=70, dec_hidden_dim_2=40, dropout=0.2, learning_rate=1e-3):
-        super(trainerGNN, self).__init__()
+        super().__init__()
         self.encoder, self.decoder = VAE(input_dim, latent_dim,
                                          enc_hidden_dim_1, dec_hidden_dim_1,
                                          enc_hidden_dim_2, dec_hidden_dim_2,
@@ -123,7 +123,7 @@ class trainerGNN(pl.LightningModule):
 
     def __init__(self, in_dim=74, gcn_hidden_dim=256, fcn_hidden_dim=256, out_dim=1,
                  n_gcn_layers=2, n_fcn_layers=2, learning_rate=1e-3):
-        super(trainerGNN, self).__init__()
+        super().__init__()
         self.model = GNN(in_dim, gcn_hidden_dim, fcn_hidden_dim, out_dim,
                          n_gcn_layers, n_fcn_layers)
         self.learning_rate = learning_rate

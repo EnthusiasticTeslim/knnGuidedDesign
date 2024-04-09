@@ -14,32 +14,65 @@ from pytorch_lightning import LightningDataModule
 from multiprocessing import cpu_count
 from dgl.dataloading import GraphDataLoader
 try:
-    from utils import get_selfies_and_smiles_encodings, multiple_selfies_to_hot  # selfies and smiles functions
+    from utils import get_selfies_and_smiles_encodings, multiple_selfies_to_hot, get_smiles_selfies  # selfies and smiles functions
     from utils import graph_dataset
 except:
-    from .utils import get_selfies_and_smiles_encodings, multiple_selfies_to_hot  # selfies and smiles functions
+    from .utils import get_selfies_and_smiles_encodings, multiple_selfies_to_hot, get_smiles_selfies  # selfies and smiles functions
     from .utils import graph_dataset
 
 
 #*********************** Load the data into selfies ***********************
-def load_data(seed, test_size=0.2,
-              csv_path='../data/data.csv'):
+def load_vae_data(seed, test_size=0.2, csv_path='../data/data.csv', 
+              existing_selfies=False, max_len: int = 0, alphabet: list = []):
     # Load the data
     data = pd.read_csv(csv_path)
-
     # Transform the data into a list of SELFIES and SMILES
-    selfies_list, selfies_alphabet, largest_selfies_len,_, _, _, vocab_stoi, vocab_itos = get_selfies_and_smiles_encodings(data)
+    if existing_selfies is not True:
+        selfies_list, selfies_alphabet, largest_selfies_len, \
+            smiles_list, smiles_alphabet, largest_smiles_len, \
+                    vocab_stoi, vocab_itos = get_selfies_and_smiles_encodings(data)
+        # One-Hot-Encode the SELFIES into a tensor
+        input_one_hot_arr = multiple_selfies_to_hot(selfies_list, largest_selfies_len, selfies_alphabet)
 
-    # One-Hot-Encode the SELFIES into a tensor
-    input_one_hot_arr = multiple_selfies_to_hot(selfies_list, largest_selfies_len, selfies_alphabet)
+    else:
+        selfies_list, smiles_list = get_smiles_selfies(data)
+        input_one_hot_arr = multiple_selfies_to_hot(selfies_list, max_len, alphabet)
+        selfies_alphabet = alphabet
+        largest_selfies_len = max_len
 
     # split the data into training and validation sets
-    x_train, x_val = train_test_split(input_one_hot_arr, test_size=test_size, random_state=seed)
+    x_train, x_test = train_test_split(input_one_hot_arr, test_size=test_size, random_state=seed)
+    # split test into test and validation
+    x_test, x_val = train_test_split(x_test, test_size=0.5, random_state=seed)
 
     x_train = torch.tensor(x_train, dtype=torch.float32)
     x_val = torch.tensor(x_val, dtype=torch.float32)
+    x_test = torch.tensor(x_test, dtype=torch.float32)
 
-    return x_train, x_val
+    return x_train, x_val, x_test, selfies_alphabet, largest_selfies_len
+
+
+# class VAEDataModule(LightningDataModule):
+#     '''LightningDataModule for the VAE model
+#     refs:
+#         https://docs.dgl.ai/en/2.0.x/guide/training-graph.html'''
+#     def __init__(self, csv_path, test_size=0.2, batch_size=16):
+#         super().__init__()
+#         self.train_data, self.test_data, self.val_data = load_graph_data(seed=42, test_size=test_size, csv_path=csv_path)
+#         self.batch_size = batch_size
+
+#     def train_dataloader(self):
+        
+#         return GraphDataLoader(self.train_data, batch_size=self.batch_size,
+#                                shuffle=True, num_workers=cpu_count(), persistent_workers=True)
+    
+#     def val_dataloader(self):
+#         return GraphDataLoader(self.val_data, batch_size=self.batch_size, 
+#                                  shuffle=False, num_workers=cpu_count(), persistent_workers=True)
+    
+#     def test_dataloader(self):
+#         return GraphDataLoader(self.test_data, batch_size=self.batch_size,
+#                                     shuffle=False, num_workers=cpu_count(), persistent_workers=True)
 
 
 #*********************** Load the data into Graph ***********************
@@ -94,16 +127,29 @@ class GraphDataModule(LightningDataModule):
 
 
 #*********************** Load the hyperparameters from logs ***********************
+# batch_size: 64
+# dec_hidden_dim_1: 32
+# dec_hidden_dim_2: 32
+# device: !!python/object:pytorch_lightning.accelerators.mps.MPSAccelerator {}
+# dropout: 0.0
+# enc_hidden_dim_1: 32
+# enc_hidden_dim_2: 32
+# learning_rate: 0.0001
+# num_epochs: 250
+# seed: 42
+# split: 0.2
+
 def load_auto_hp_params(path):
     log_dirs = sorted(glob.glob(path))
-
     hp_params = {"run":[],
+                 'seed': [],
                     'enc_hidden_dim_1': [],
                     'dec_hidden_dim_1': [],
                     'enc_hidden_dim_2': [],
                     'dec_hidden_dim_2': [],
                     "dropout":[],
-                    "lr": [],
+                    "learning_rate": [],
+                    "batch_size": [],
                     "trn_loss":[],
                     "val_loss":[]}
 
@@ -119,11 +165,11 @@ def load_auto_hp_params(path):
                 print(hparams)
 
             for k,v in hparams.items():
-                if k not in ["n_features", "n_classes"]:
+                if k not in ["device", "num_epochs", 'split']:
                     hp_params[k].append(v)
 
-            train_loss = df[df.tag=="train_loss"].value.to_numpy()
-            val_loss = df[df.tag=="val_loss"].value.to_numpy()
+            train_loss = df[df.tag=="train_loss_epoch"].value.to_numpy()
+            val_loss = df[df.tag=="val_loss_epoch"].value.to_numpy()
 
             hp_params["trn_loss"].append(np.nanmin(train_loss))
             hp_params["val_loss"].append(np.nanmin(val_loss))
