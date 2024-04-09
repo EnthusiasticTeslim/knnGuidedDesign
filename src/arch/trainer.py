@@ -87,6 +87,10 @@ class BaseTrainer:
         trainer.fit(model, self.pretrain_loader, self.preval_loader)
 
         return model
+
+    def load_model(self, model_path):
+        model = torch.load(model_path)
+        return model
     
     def fineTuneVAE(self, model_info:dict, random_weight=False, model=None,
                     num_epochs=1000, batch_size=128, 

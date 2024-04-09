@@ -1,0 +1,15 @@
+batch_size: 8
+dec_hidden_dim_1: 128
+dec_hidden_dim_2: 128
+dropout: 0.30000000000000004
+enc_hidden_dim_1: 128
+enc_hidden_dim_2: 128
+height_dim: 41
+input_dim: 2378
+latent_dim: 32
+learning_rate: 0.001
+max_len: 58
+num_epochs: 500
+seed: 500
+split_ratio: 0.3
+width_dim: 58

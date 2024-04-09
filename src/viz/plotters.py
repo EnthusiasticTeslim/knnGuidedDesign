@@ -349,7 +349,7 @@ class Plotters():
         plt.show()
 
 
-class Parallel_Coordinates(Plotters):
+class Parallel_Coordinates():
     def __init__(self, df, best_itr, ax=None, fs=10) -> None:
         self.columns = df.columns[1:]
         self.data = df.to_numpy()[:,1:]
@@ -358,6 +358,7 @@ class Parallel_Coordinates(Plotters):
         self.ax = ax
         self.lim = self.data.shape[1] - 1
         self.fs = fs
+        self.plotters = Plotters()
 
     def wrap_xlabel_strings(self, max_char=9):
         strings = self.columns
@@ -376,8 +377,8 @@ class Parallel_Coordinates(Plotters):
         ymins = ys.min(axis=0)
         ymaxs = ys.max(axis=0)
         dys = ymaxs - ymins
-        ymins -= dys * 0.05  # add 5% padding below and above
-        ymaxs += dys * 0.05
+        ymins -= dys * 0.1  # add 5% padding below and above
+        ymaxs += dys * 0.1
         ymaxs[1], ymins[1] = ymins[1], ymaxs[1]  # reverse axis 1 to have less crossings
 
         self.ymin = ymins
@@ -410,7 +411,7 @@ class Parallel_Coordinates(Plotters):
         self.ax.tick_params(axis='x', which='major', pad=7)
         self.ax.spines['right'].set_visible(False)
         self.ax.xaxis.tick_top()
-        self.ax = self.ax_formatter(self.ax, xax=False)
+        self.ax = self.plotters.ax_formatter(self.ax, xax=False)
     
     def plot_curves(self):
         colors = plt.cm.Set2.colors

@@ -23,7 +23,8 @@ def objective(trial, split: float=0.3, data_path: str = '../data/data.csv', save
     # set seed for reproducibility
     pl.seed_everything(seed=seed)
     # Load the data
-    x_train, x_val, x_test = load_vae_data(seed=seed, test_size=split, csv_path=data_path)
+    x_train, x_val, x_test, selfies_alphabet, \
+                    largest_selfies_len= load_vae_data(seed=seed, test_size=split, csv_path=data_path)
     # Flatten the input data using the custom 'flatten' function
     # This function takes a 3D tensor 'x_train' and reshapes it into a 2D tensor
     width_train, height_train, input_dim_train, flattened_dataset_train = flatten(x_train)
@@ -34,9 +35,9 @@ def objective(trial, split: float=0.3, data_path: str = '../data/data.csv', save
     assert width_train == width_val == width_test, "Width dimensions are not the same"
     assert input_dim_train == input_dim_val == input_dim_test, "Input dimensions are not the same"
     # Define hyperparameters
-    train_loader = DataLoader(TensorDataset(flattened_dataset_train), batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(TensorDataset(flattened_dataset_val), batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(TensorDataset(flattened_dataset_test), batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(TensorDataset(flattened_dataset_train), batch_size=batch_size, shuffle=False, num_workers=9, persistent_workers=True)
+    val_loader = DataLoader(TensorDataset(flattened_dataset_val), batch_size=batch_size, shuffle=False, num_workers=9, persistent_workers=True)
+    test_loader = DataLoader(TensorDataset(flattened_dataset_test), batch_size=batch_size, shuffle=False, num_workers=9, persistent_workers=True)
     # Initialize the model
     latent_dim = 32  # Dimensionality of the latent space
     model = trainerVAE(input_dim_train, latent_dim,
@@ -64,23 +65,26 @@ def objective(trial, split: float=0.3, data_path: str = '../data/data.csv', save
                                 "dec_hidden_dim_2": dec_hidden_dim_2,
                                 "learning_rate": learning_rate,
                                 "dropout": dropout, "num_epochs": num_epochs,
-                                "seed": seed, "batch_size": batch_size})
+                                "seed": seed, "batch_size": batch_size,
+                                "input_dim": input_dim_train, "latent_dim": latent_dim,
+                                "height_dim": height_train, "width_dim": width_train,
+                                "split_ratio": split, "max_len": largest_selfies_len})
     
     trainer.fit(model, train_loader, val_loader)
-    trainer.test(model, test_dataloaders=test_loader)
     
     return trainer.callback_metrics["val_loss"].item()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Hyperparameter search for VAE model")
-    parser.add_argument("--split", type=float, default=0.2, help="split ratio")
+    parser.add_argument("--split", type=float, default=0.3, help="split ratio")
     parser.add_argument("--n_trials", type=int, default=100, help="number of trials")
     parser.add_argument("--data_path", type=str, default='../data/data.csv', help="path to data")
+    parser.add_argument("--save_dir", type=str, default='../reports', help="path to save directory")
     parser.add_argument("--id", type=str, default='VAE', help="name of model")
     args = parser.parse_args()
 
     study = optuna.create_study(direction='minimize')
-    study.optimize(lambda trial: objective(trial, args.split,args.data_path, args.id), n_trials=args.n_trials)
+    study.optimize(lambda trial: objective(trial=trial, split=args.split, data_path=args.data_path, save_dir=args.save_dir), n_trials=args.n_trials)
 
     best_params = study.best_params
     print("Best hyperparameters: ", best_params)
