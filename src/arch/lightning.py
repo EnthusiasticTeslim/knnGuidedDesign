@@ -140,7 +140,7 @@ class trainerGNN(pl.LightningModule):
         out = self(graph)
         # loss and accuracy
         loss = self.criterion(out, label.view(-1, 1))
-        acc = r2_score(label.view(-1, 1).cpu().detach().numpy(), out.cpu().detach().numpy())
+        acc = r2_score(label.cpu().detach().numpy(), out.cpu().detach().numpy())
         # log the results
         self.log("train_loss", loss, prog_bar=True, logger=True)
         self.log("train_acc", acc, prog_bar=True, logger=True)
@@ -154,7 +154,7 @@ class trainerGNN(pl.LightningModule):
         out = self(graph)
         # loss and accuracy
         loss = self.criterion(out, label.view(-1, 1))
-        acc = r2_score(label.view(-1, 1).cpu().detach().numpy(), out.cpu().detach().numpy())
+        acc = r2_score(label.cpu().detach().numpy(), out.cpu().detach().numpy())
         # log the results
         self.log("val_loss", loss, prog_bar=True, logger=True)
         self.log("val_acc", acc, prog_bar=True, logger=True)
@@ -168,7 +168,7 @@ class trainerGNN(pl.LightningModule):
         out = self(graph)
         # compute loss and accuracy
         loss = self.criterion(out, label.view(-1, 1))
-        acc = r2_score(label.view(-1, 1).cpu().detach().numpy(), out.cpu().detach().numpy())
+        acc = r2_score(label.cpu().detach().numpy(), out.cpu().detach().numpy())
         # log the results
         self.log("test_loss", loss, prog_bar=True, logger=True)
         self.log("test_acc", acc, prog_bar=True, logger=True)

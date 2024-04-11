@@ -1,0 +1,9 @@
+batch_size: 32
+hidden_fcn_dim: 256
+hidden_gcn_dim: 64
+learning_rate: 0.0001
+n_fcn_layers: 3
+n_gcn_layers: 4
+num_epochs: 300
+seed: 104
+split: 0.3

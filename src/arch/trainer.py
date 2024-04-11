@@ -50,7 +50,7 @@ class BaseTrainer:
         pl.seed_everything(seed=self.seed)
         # Load the data
         x_train, x_val, x_test, selfies_alphabet, \
-                    largest_selfies_len = load_vae_data(seed=self.seed, test_size=self.split, csv_path=data_path)
+                    largest_selfies_len, vocab_stoi, vocab_itos = load_vae_data(seed=self.seed, test_size=self.split, csv_path=data_path)
         
         width_train, height_train, input_dim_train, flattened_dataset_train = flatten(x_train)
         width_val, height_val, input_dim_val, flattened_dataset_val = flatten(x_val)

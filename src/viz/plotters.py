@@ -26,11 +26,11 @@ class Plotters():
         self.fontname = "Times New Roman"
         self.ax_linewidth_thick = 1.5
         self.ax_linewidth_thin = 1.0
-        self.fontsize = 13
+        self.fontsize = 15
         self.labelsize = 'x-large'
         self.pad = 10
-        self.length_major = 9
-        self.length_minor = 5
+        self.length_major = 10
+        self.length_minor = 7
         self.width = 1.5
         self.dpi = 400
 
@@ -349,27 +349,46 @@ class Plotters():
         plt.show()
 
 
+# hpp_df.columns = [r'\rm run$', r'$\rm enc_hidden_dim_1$', r'$\rm enc_hidden_dim_2',
+#                       r'$\rm dec_hidden_dim_1', r'$\rm dec_hidden_dim_2',
+#                         r'$\rm lr$', r'$\rm dropout$', r'$\rm num_epochs$',
+#                         r'$\rm seed$', r'$\rm batch_size$',
+#                         r'$\rm trn_loss$', r'$\rm val_loss$']
+
+# hpp_df.columns = [r'\rm run$', r'$\rm enc_hidden_dim_1$', r'$\rm enc_hidden_dim_2',
+#                       r'$\rm dec_hidden_dim_1', r'$\rm dec_hidden_dim_2',
+#                         r'$\rm lr$', r'$\rm dropout$', r'$\rm num_epochs$',
+#                         r'$\rm seed$', r'$\rm batch_size$',
+#                         r'$\rm trn_loss$', r'$\rm val_loss$']
+
 class Parallel_Coordinates():
-    def __init__(self, df, best_itr, ax=None, fs=10) -> None:
+    def __init__(self, df, cols, best_itr, ax=None, fs=10, wrap_label=False) -> None:
         self.columns = df.columns[1:]
         self.data = df.to_numpy()[:,1:]
         self.index = df.iloc[:,0].to_list()
         self.best_itr = best_itr
+        self.cols = cols
+        self.wrap_label = wrap_label
         self.ax = ax
         self.lim = self.data.shape[1] - 1
         self.fs = fs
         self.plotters = Plotters()
 
     def wrap_xlabel_strings(self, max_char=9):
-        strings = self.columns
-        wrapped_strings = []
-        for string in strings:
-            if len(string) > max_char:
-                wrapped_string = '\n'.join([string[i:i+max_char] for i in range(0, len(string), max_char)])
-                wrapped_strings.append(wrapped_string)
-            else:
-                wrapped_strings.append(string)
-        self.columns = wrapped_strings
+        if self.wrap_label:
+            strings = self.columns
+            wrapped_strings = []
+            for string in strings:
+                if len(string) > max_char:
+                    wrapped_string = '\n'.join([string[i:i+max_char] for i in range(0, len(string), max_char)])
+                    wrapped_strings.append(wrapped_string)
+                else:
+                    wrapped_strings.append(string)
+            self.columns = wrapped_strings
+            # print(self.columns)
+            # print(len(self.columns))
+        else:
+            self.columns = self.cols
     
     def transforms(self):
         self.data[self.data == 0] = 1e-5
@@ -411,7 +430,7 @@ class Parallel_Coordinates():
         self.ax.tick_params(axis='x', which='major', pad=7)
         self.ax.spines['right'].set_visible(False)
         self.ax.xaxis.tick_top()
-        self.ax = self.plotters.ax_formatter(self.ax, xax=False)
+        #self.ax = self.plotters.ax_formatter(self.ax, xax=False)
     
     def plot_curves(self):
         colors = plt.cm.Set2.colors

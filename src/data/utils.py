@@ -174,6 +174,26 @@ def flatten(x_train):
     return width, height, input_dim, flattened_dataset
 
 
+def valid_smiles(smiles):
+    """
+    Check if a SMILES string in a list is valid and print percentage of valid SMILES strings.
+    Args:
+        smiles : list of SMILES strings
+    Returns:
+        bool, True if the SMILES string is valid, False otherwise
+    """
+    valid_state = [] # store true or false
+    valid_smi = [] # store valid smiles
+    for sm in smiles:
+        mol = Chem.MolFromSmiles(sm)
+        if mol is not None:
+            valid_state.append(True)
+            valid_smi.append(sm)
+        else:
+            valid_state.append(False)
+    print(f'--> Percentage of valid SMILES strings: {np.mean(valid_state)*100:.2f}%')
+    return valid_smi
+
 def generate_new_molecules(vae, num_samples = 500, latent_dim = 32):
         """
         Generate new molecules from the trained VAE

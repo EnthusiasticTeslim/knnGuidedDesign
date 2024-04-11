@@ -24,7 +24,7 @@ def objective(trial, split: float=0.3, data_path: str = '../data/data.csv', save
     pl.seed_everything(seed=seed)
     # Load the data
     x_train, x_val, x_test, selfies_alphabet, \
-                    largest_selfies_len= load_vae_data(seed=seed, test_size=split, csv_path=data_path)
+                    largest_selfies_len, vocab_stoi, vocab_itos = load_vae_data(seed=seed, test_size=split, csv_path=data_path)
     # Flatten the input data using the custom 'flatten' function
     # This function takes a 3D tensor 'x_train' and reshapes it into a 2D tensor
     width_train, height_train, input_dim_train, flattened_dataset_train = flatten(x_train)

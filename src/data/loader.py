@@ -8,7 +8,8 @@ Created on Tue April 2 15:26:24 2024
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-import torch, glob, yaml
+import torch, yaml
+from glob import glob
 from tbparse import SummaryReader
 from pytorch_lightning import LightningDataModule
 from multiprocessing import cpu_count
@@ -23,7 +24,8 @@ except:
 
 #*********************** Load the data into selfies ***********************
 def load_vae_data(seed, test_size=0.2, csv_path='../data/data.csv', 
-              existing_selfies=False, max_len: int = 0, alphabet: list = []):
+              existing_selfies=False, max_len: int = 0, alphabet: list = [],
+              vocab_stoi: dict = {}, vocab_itos: dict = {}):
     # Load the data
     data = pd.read_csv(csv_path)
     # Transform the data into a list of SELFIES and SMILES
@@ -39,6 +41,8 @@ def load_vae_data(seed, test_size=0.2, csv_path='../data/data.csv',
         input_one_hot_arr = multiple_selfies_to_hot(selfies_list, max_len, alphabet)
         selfies_alphabet = alphabet
         largest_selfies_len = max_len
+        vocab_itos = vocab_itos
+        vocab_stoi = vocab_stoi
 
     # split the data into training and validation sets
     x_train, x_test = train_test_split(input_one_hot_arr, test_size=test_size, random_state=seed)
@@ -49,7 +53,7 @@ def load_vae_data(seed, test_size=0.2, csv_path='../data/data.csv',
     x_val = torch.tensor(x_val, dtype=torch.float32)
     x_test = torch.tensor(x_test, dtype=torch.float32)
 
-    return x_train, x_val, x_test, selfies_alphabet, largest_selfies_len
+    return x_train, x_val, x_test, selfies_alphabet, largest_selfies_len, vocab_stoi, vocab_itos
 
 
 # class VAEDataModule(LightningDataModule):
@@ -105,9 +109,9 @@ class GraphDataModule(LightningDataModule):
     '''LightningDataModule for the GNN model
     refs:
         https://docs.dgl.ai/en/2.0.x/guide/training-graph.html'''
-    def __init__(self, csv_path, test_size=0.2, batch_size=16):
+    def __init__(self, csv_path, test_size=0.2, batch_size=16, seed=42):
         super().__init__()
-        self.train_data, self.test_data, self.val_data = load_graph_data(seed=42, test_size=test_size, csv_path=csv_path)
+        self.train_data, self.test_data, self.val_data = load_graph_data(seed=seed, test_size=test_size, csv_path=csv_path)
         self.batch_size = batch_size
 
     def train_dataloader(self):
@@ -127,20 +131,20 @@ class GraphDataModule(LightningDataModule):
 
 
 #*********************** Load the hyperparameters from logs ***********************
-
-def load_auto_hp_params(path,
-                        params = ['batch_size', 'dec_hidden_dim_1', 'dec_hidden_dim_2',
-                         'dropout', 'enc_hidden_dim_1', 'enc_hidden_dim_2', 'height_dim',
-                            'input_dim', 'latent_dim', 'learning_rate', 'max_len',
-                                  'num_epochs', 'seed', 'split_ratio', 'width_dim', 'trn_loss', 'val_loss'],
-                        ignore_list = ['input_dim', 'latent_dim', 'split_ratio']):
-
-    log_dirs = sorted(glob.glob(path))
+def load_vae_hp_params(path,
+                        params=['batch_size', 'dec_hidden_dim_1', 'dec_hidden_dim_2',
+                                'dropout', 'enc_hidden_dim_1', 'enc_hidden_dim_2', 'height_dim',
+                                'input_dim', 'latent_dim', 'learning_rate', 'max_len',
+                                'num_epochs', 'seed', 'split_ratio', 'width_dim',
+                                'trn_loss', 'val_loss'],
+                        ignore_list=['input_dim', 'latent_dim', 'split_ratio']):
+    log_dirs = sorted(glob(path))
     hp_params = {'run': []}
     for pms in params:
         hp_params[pms] = []
 
-    for i,v in enumerate(log_dirs):
+    for i, v in enumerate(log_dirs):
+        print(f"Processing {v}")
         reader = SummaryReader(log_dirs[i])
         df = reader.scalars
 
@@ -149,16 +153,53 @@ def load_auto_hp_params(path,
             with open(f"{log_dirs[i]}/hparams.yaml", "r") as file:
                 hparams = yaml.safe_load(file)
 
-            for k,v in hparams.items():
+            for k, v in hparams.items():
                 if k not in ignore_list:
                     hp_params[k].append(v)
 
-            train_loss = df[df.tag=="train_loss_epoch"].value.to_numpy()
-            val_loss = df[df.tag=="val_loss_epoch"].value.to_numpy()
+            train_loss = df[df.tag == "train_loss_epoch"].value.to_numpy()
+            val_loss = df[df.tag == "val_loss_epoch"].value.to_numpy()
 
             hp_params["trn_loss"].append(np.nanmin(train_loss))
             hp_params["val_loss"].append(np.nanmin(val_loss))
-    
-    df = pd.DataFrame(hp_params)
-    print(df)
-    return df
+            #hp_params["val_loss"].append(val_loss[np.nanargmin(train_loss)])
+
+    return pd.DataFrame(hp_params)
+
+def load_gnn_hp_params(path,
+                        params=['batch_size', 'trn_loss', 'val_loss'],
+                        ignore_list=['input_dim', 'latent_dim', 'split_ratio']):
+    log_dirs = sorted(glob(path))
+    hp_params = {'run': []}
+    for pms in params:
+        hp_params[pms] = []
+
+    for i, v in enumerate(log_dirs):
+        print(f"Processing {v}")
+        reader = SummaryReader(log_dirs[i])
+        df = reader.scalars
+
+        if len(df) > 2:
+            hp_params["run"].append(f"run_{i}")
+
+            with open(f"{log_dirs[i]}/hparams.yaml", "r") as file:
+                hparams = yaml.safe_load(file)
+
+            for k, v in hparams.items():
+                if k not in ignore_list:
+                    hp_params[k].append(v)
+
+            train_loss = df[df.tag == "train_loss"].value.to_numpy()
+            val_loss = df[df.tag == "val_loss"].value.to_numpy()
+            train_acc = df[df.tag == "train_acc"].value.to_numpy()
+            val_acc = df[df.tag == "val_acc"].value.to_numpy()
+
+            hp_params["trn_loss"].append(np.nanmin(train_loss))
+            hp_params["val_loss"].append(np.nanmin(val_loss))
+            hp_params["trn_acc"].append(np.nanmax(train_acc))
+            hp_params['val_acc'].append(np.nanmax(val_acc))
+            # hp_params["val_loss"].append(val_loss[np.nanargmin(train_loss)])
+            # hp_params["trn_acc"].append(train_acc[np.nanargmin(train_loss)])
+            # hp_params['val_acc'].append(val_acc[np.nanargmin(train_loss)])
+
+    return pd.DataFrame(hp_params)

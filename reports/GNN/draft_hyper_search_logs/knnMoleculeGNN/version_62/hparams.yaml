@@ -1,0 +1,10 @@
+batch_size: 32
+device: !!python/object:pytorch_lightning.accelerators.cuda.CUDAAccelerator {}
+hidden_fcn_dim: 64
+hidden_gcn_dim: 128
+learning_rate: 0.0001
+n_fcn_layers: 1
+n_gcn_layers: 4
+num_epochs: 300
+seed: 42
+split: 0.3
